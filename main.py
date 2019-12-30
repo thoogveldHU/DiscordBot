@@ -1,12 +1,14 @@
 import discord
 import asyncio
-from discord.ext.commands import Bot
-from discord.ext.commands import has_any_role
+from discord.ext.commands import Bot, has_any_role
 from discord.utils import get
 import openpyxl
+import os
+from PIL import Image, ImageDraw, ImageFont
+import textwrap
 
 #prefix
-Client = Bot('?')
+Client = Bot('!')
 
 #command clear
 @Client.command(pass_context=True)
@@ -81,7 +83,7 @@ async def warn(ctx):
     wb.save('warnings.xlsx')
     return await ctx.send(user.name + " has been warned..")
 
-
+#command warnlog
 @Client.command(pass_context=True)
 @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
 async def warnlog(ctx):
@@ -103,6 +105,7 @@ async def warnlog(ctx):
                 warns.append(item.value)
             print(warns)
 
+#command ban
 @Client.command(pass_context=True)
 @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
 async def ban(ctx):
@@ -112,12 +115,22 @@ async def ban(ctx):
     await ctx.guild.ban(user)
     await ctx.channel.send(file=discord.File('ban.jpg'))
 
+#on member join, putting in an image and a text line.
+@Client.event
 async def on_member_join(member):
+    print('working')
+    makeWelcomeBanner(member.name)
+    print('made banner')
     guild = member.guild
     if guild.system_channel is not None:
-        to_send = 'Welkom {0.mention} bij {1.name}! ?welkom / ?welcome om de rest van de kanalen te kunnen zien!'.format(member,guild)
+        print('default channel is ready')
+        await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
+        print('send image')
+        to_send = 'Welkom {0.mention} bij {1.name}! Doe een !welkom om de rest van de kanalen te kunnen zien!'.format(member,guild)
+        print(to_send)
         return await guild.system_channel.send(to_send)
 
+#welkom
 @Client.command(pass_context=True)
 async def welkom(ctx):
     member = ctx.message.author
@@ -126,6 +139,7 @@ async def welkom(ctx):
     emoji = '\U0001f44d'
     return await ctx.message.add_reaction(emoji) 
 
+#welcome
 @Client.command(pass_context=True)
 async def welcome(ctx):
     member = ctx.message.author
@@ -134,6 +148,7 @@ async def welcome(ctx):
     emoji = '\U0001f44d'
     return await ctx.message.add_reaction(emoji)
 
+#read token from file
 def getToken(fileName,command):
     configFile = open(fileName,"r")
     lineList = configFile.readlines()
@@ -144,78 +159,40 @@ def getToken(fileName,command):
                 return split[1]
     return "Command: " + command + " not found." 
 
+#test only.
 @Client.command(pass_context=True)
-async def test(ctx):
-    astr = '''Welkom bij Kwaad Genie! \n''' + ctx.member.name
-    para = textwrap.wrap(astr, width=20)
-    im = Image.open('test.jpeg')
+async def welcomeMessageTest(ctx):
+    makeWelcomeBanner(ctx)
+    guild = ctx.author.guild
+    await ctx.channel.send(file=discord.File('welcome_banner_ready.png'))
+    to_send = " 'Welkom thuis {0.mention} - CaptainManCave'. Wat leuk dat je er bent, doe een !welkom in de chat om een Genie te worden en alle kanalen te bekijken!".format(ctx.author)
+    return await ctx.channel.send(to_send)
+
+#make welcome image
+def makeWelcomeBanner(name):
+    astr = '''Welkom bij Kwaad Genie \n''' + name + "!"
+    para = textwrap.wrap(astr, width=30)
+    im = Image.open('banner.png')
     MAX_W, MAX_H = im.size[0], im.size[1]
 
     draw = ImageDraw.Draw(im)
-    font = ImageFont.truetype('segoe-ui-bold.ttf', 24)
-
-    #Left
-    current_h, pad = 50, 10
-    for line in para:
-        w, h = draw.textsize(line, font=font)
-        if not line == para[-1]:
-            draw.text(((MAX_W - w) / 2, current_h - 1), line,
-                      font=font, fill=(255, 255, 255, 255))
-        else:
-            draw.text(((MAX_W - w) / 2, current_h - 1),
-                      line, font=font, fill=(0, 0, 0, 255))
-        current_h += h + pad
-
-    #right
-    current_h, pad = 50, 10
-    for line in para:
-        w, h = draw.textsize(line, font=font)
-        if not line == para[-1]:
-            draw.text(((MAX_W - w) / 2, current_h + 1), line,
-                      font=font, fill=(255, 255, 255, 255))
-        else:
-            draw.text(((MAX_W - w) / 2, current_h + 1),
-                      line, font=font, fill=(0, 0, 0, 255))
-        current_h += h + pad
-
-    #above
-    current_h, pad = 50, 10
-    for line in para:
-        w, h = draw.textsize(line, font=font)
-        if not line == para[-1]:
-            draw.text(((MAX_W - w) / 2 - 1, current_h), line,
-                      font=font, fill=(255, 255, 255, 255))
-        else:
-            draw.text(((MAX_W - w) / 2 - 1, current_h),
-                      line, font=font, fill=(0, 0, 0, 255))
-        current_h += h + pad
-
-    #under
-    current_h, pad = 50, 10
-    for line in para:
-        w, h = draw.textsize(line, font=font)
-        if not line == para[-1]:
-            draw.text(((MAX_W - w) / 2 + 1, current_h), line,
-                      font=font, fill=(255, 255, 255, 255))
-        else:
-            draw.text(((MAX_W - w) / 2 + 1, current_h),
-                      line, font=font, fill=(0, 0, 0, 255))
-        current_h += h + pad
+    font = ImageFont.truetype('segoe-ui-bold.ttf', 28)
 
     #Front text
-    current_h, pad = 50, 10
+    current_h, pad = 75, 10
     for line in para:
         w, h = draw.textsize(line, font=font)
         if not line == para[-1]:
-            draw.text(((MAX_W - w) / 2, current_h), line,
-                      font=font, fill=(0, 0, 0, 255))
-        else:
-            draw.text(((MAX_W - w) / 2, current_h), line,
+            draw.text(((MAX_W - w) / 4, current_h), line,
                       font=font, fill=(255, 255, 255, 255))
+        else:
+            draw.text(((MAX_W - w) / 3, current_h), line,
+                      font=font, fill=(200, 200, 200, 255))
         current_h += h + pad
 
-    im.save('test.png')
+    im.save('welcome_banner_ready.png')
 
+#run bot
 token = getToken("config.txt", "TOKEN")
 Client.run(token)
 
@@ -223,6 +200,5 @@ Client.run(token)
 TO-DO:
     3.make bot send warnlog
     4.streamer role -> live. https://discordpy.readthedocs.io/en/latest/api.html#discord.Streaming
-    5.Welcome image
 
 """""""""
