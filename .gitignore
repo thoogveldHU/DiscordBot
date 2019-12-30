@@ -1,0 +1,8 @@
+*.txt
+*.csv
+*.xlsx
+*.env
+*/pictures
+*\pictures
+*.png
+*.jpg
