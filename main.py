@@ -362,17 +362,20 @@ def makeWelcomeBanner(name):
 
 @Client.event
 async def on_message_delete(message):
-    if not message.content.startswith("!"):
-        #Get the old message and give it a make over.
-        embed = discord.Embed(title="Deleted Message by: {0}".format(message.author))
-        embed.add_field(name="Message content",value=message.content,inline=False)
-        embed.add_field(name="Channel:",value=message.channel,inline=False)
-        #get the streamer role from the guild, by id.
-        guild = Client.get_guild(491609268567408641)
-        #Logging channel.
-        channel = guild.get_channel(661330775618224158)
-        #Send it to the logging channel.
-        await channel.send(embed=embed)
+    try:
+        if not message.content.startswith("!"):
+            #Get the old message and give it a make over.
+            embed = discord.Embed(title="Deleted Message by: {0}".format(message.author))
+            embed.add_field(name="Message content",value=message.content,inline=False)
+            embed.add_field(name="Channel:",value=message.channel,inline=False)
+            #get the streamer role from the guild, by id.
+            guild = Client.get_guild(491609268567408641)
+            #Logging channel.
+            channel = guild.get_channel(661330775618224158)
+            #Send it to the logging channel.
+            await channel.send(embed=embed)
+    except discord.errors.HTTPException:
+        print()
 
 @Client.event
 async def on_message_edit(before,after):
