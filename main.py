@@ -281,8 +281,6 @@ Client.run(token)
 
 """""""""
 TO-DO:
-    1.make bot send warnlog
-    2.log deleted & changed messages.
     3.create events
     4.most played / is playing
     5.ttl next event
