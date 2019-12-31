@@ -378,16 +378,19 @@ async def on_message_delete(message):
 @Client.event
 async def on_message_edit(before,after):
     #Get the old message and give it a make over.
-    embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
-    embed.add_field(name="Old message content",value=before.content, inline=False)
-    embed.add_field(name="New Message content",value=after.content, inline=False)
-    embed.add_field(name="Channel",value=before.channel,inline=False)
-    #get the streamer role from the guild, by id.
-    guild = Client.get_guild(491609268567408641)
-    #Logging channel.
-    channel = guild.get_channel(661330775618224158)
-    #Send it to the logging channel.
-    await channel.send(embed=embed)
+    try:
+        embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
+        embed.add_field(name="Old message content",value=before.content, inline=False)
+        embed.add_field(name="New Message content",value=after.content, inline=False)
+        embed.add_field(name="Channel",value=before.channel,inline=False)
+        #get the streamer role from the guild, by id.
+        guild = Client.get_guild(491609268567408641)
+        #Logging channel.
+        channel = guild.get_channel(661330775618224158)
+        #Send it to the logging channel.
+        await channel.send(embed=embed)
+    except discord.errors.HTTPException:
+        print()
 
 #run bot
 token = getToken("config.txt", "TOKEN")
@@ -401,5 +404,5 @@ TO-DO:
     2.most played / is playing
     3.ttl next event
     4.meme return /r/memes or /r/dankmemes
-    5.music
+    5.music queue
 """""""""
