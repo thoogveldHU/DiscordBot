@@ -43,6 +43,7 @@ Client = Bot('!')
 #                     #await member.remove_roles(liveRole)
 #             await asyncio.sleep(30)
     
+#Check for streamer & live roles.
 @loop(seconds=60)
 async def checkForStreaming():
     await Client.wait_until_ready()
@@ -149,7 +150,7 @@ async def warnlog(ctx):
     listOfWords = ctx.message.content.split(" ")
     member = listOfWords[1][3:-1]
     user = Client.get_user(int(member))
-
+    embed = discord.Embed(title="Warnlog for user {0.name}".format(user))
     #opening the warning file
     wb = openpyxl.load_workbook('warnings.xlsx')
     ws = wb.active
@@ -161,7 +162,10 @@ async def warnlog(ctx):
             warns = []
             for item in row[2:]:
                 warns.append(item.value)
-            print(warns)
+                size = len(warns)
+                embed.add_field(name="Warning {0}".format(size),value=item.value,inline=False)
+    await ctx.channel.send(embed=embed)
+        
 
 #command ban
 @Client.command(pass_context=True)
@@ -247,14 +251,15 @@ def makeWelcomeBanner(name):
 
 #run bot
 token = getToken("config.txt", "TOKEN")
-#client = MyClient()
-#client.run(token)
 checkForStreaming.start()
 Client.run(token)
 
 """""""""
 TO-DO:
-    3.make bot send warnlog
-    4.streamer role -> live. https://discordpy.readthedocs.io/en/latest/api.html#discord.Streaming
-
+    1.make bot send warnlog
+    2.log deleted & changed messages.
+    3.create events
+    4.most played / is playing
+    5.ttl next event
+    6.meme return /r/memes or /r/dankmemes
 """""""""
