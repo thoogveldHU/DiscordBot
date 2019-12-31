@@ -330,6 +330,7 @@ def getToken(fileName,command):
 
 #test only.
 @Client.command(pass_context=True)
+@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
 async def welcomeMessageTest(ctx):
     makeWelcomeBanner(ctx)
     guild = ctx.author.guild
