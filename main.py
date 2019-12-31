@@ -142,6 +142,34 @@ async def warn(ctx):
     wb.save('warnings.xlsx')
     return await ctx.send(user.name + " has been warned..")
 
+#command warn
+@Client.command(pass_context=True)
+@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
+async def clearwarn(ctx):
+
+    #Getting the user from the message
+    listOfWords = ctx.message.content.split(" ")
+    member = listOfWords[1][3:-1]
+    user = Client.get_user(int(member))
+
+    #opening the warning file
+    wb = openpyxl.load_workbook('warnings.xlsx')
+    ws = wb.active
+
+    #Checking if user is already there.
+    for row in ws:
+
+        #Found the ID on A[x]
+        if str(row[0].value) == str(user.id):
+            
+            #For items in user
+            for item in row[2:]:
+                #Skip the ID and Name of the member, and just get the warnings.
+                cell = (str(item)[-3:-1])
+                ws[cell] = None
+            wb.save('warnings.xlsx')
+            return await ctx.send(user.name + " warns have been cleared.")
+
 #command warnlog
 @Client.command(pass_context=True)
 @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
@@ -161,11 +189,16 @@ async def warnlog(ctx):
             #For items in user
             warns = []
             for item in row[2:]:
-                warns.append(item.value)
-                size = len(warns)
-                embed.add_field(name="Warning {0}".format(size),value=item.value,inline=False)
+                if item.value != None:
+                    warns.append(item.value)
+                    size = len(warns)
+                    embed.add_field(name="Warning {0}".format(size),value=item.value,inline=False)
+                else:
+                    embed.add_field(name="No warnings found for {0.name}".format(user),value="GOOD GENIE!")
     await ctx.channel.send(embed=embed)
-        
+
+
+ 
 
 #command ban
 @Client.command(pass_context=True)
