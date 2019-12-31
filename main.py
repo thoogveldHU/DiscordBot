@@ -247,6 +247,33 @@ def makeWelcomeBanner(name):
 
     im.save('welcome_banner_ready.png')
 
+@Client.event
+async def on_message_delete(message):
+    #Get the old message and give it a make over.
+    embed = discord.Embed(title="Deleted Message by: {0}".format(message.author))
+    embed.add_field(name="Message content",value=message.content,inline=False)
+    embed.add_field(name="Channel:",value=message.channel,inline=False)
+    #get the streamer role from the guild, by id.
+    guild = Client.get_guild(491609268567408641)
+    #Logging channel.
+    channel = guild.get_channel(661330775618224158)
+    #Send it to the logging channel.
+    await channel.send(embed=embed)
+
+@Client.event
+async def on_message_edit(before,after):
+    #Get the old message and give it a make over.
+    embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
+    embed.add_field(name="Old message content",value=before.content, inline=False)
+    embed.add_field(name="New Message content",value=after.content, inline=False)
+    embed.add_field(name="Channel",value=before.channel,inline=False)
+    #get the streamer role from the guild, by id.
+    guild = Client.get_guild(491609268567408641)
+    #Logging channel.
+    channel = guild.get_channel(661330775618224158)
+    #Send it to the logging channel.
+    await channel.send(embed=embed)
+
 #run bot
 token = getToken("config.txt", "TOKEN")
 checkForStreaming.start()
