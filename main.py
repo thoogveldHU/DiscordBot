@@ -1,6 +1,7 @@
 import discord
 import asyncio
 from discord.ext.commands import Bot, has_any_role
+from discord.ext.tasks import loop
 from discord.utils import get
 import openpyxl
 import os
@@ -10,37 +11,62 @@ import textwrap
 #prefix
 Client = Bot('!')
 
-class MyClient(discord.Client):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
-        self.bg_task = self.loop.create_task(self.checkForStreaming())
+# class MyClient(discord.Client):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args,**kwargs)
+#         self.bg_task = self.loop.create_task(self.checkForStreaming())
 
-    async def checkForStreaming(self):
-        await self.wait_until_ready()
-        #get the streamer role from the guild, by id.
-        guild = self.get_guild(491609268567408641)
-        streamerRole = guild.get_role(659062011082047499)
-        liveRole = guild.get_role(660090844124282881)
-        #Test channel to send notifcation of live, by id. Later this should add the Role "LIVE".
-        channel = self.get_channel(660083659801493505)
-        await channel.send("Bot is running, this is a 1 minute interval message to see if it is still online.")
-        while not self.is_closed():
-            #all users with the streamer role
-            for member in streamerRole.members:
-                for activity in member.activities:
-                    if activity.name == "Twitch":
-                        if liveRole not in member.roles:
-                            await channel.send(member.name + "is live --- TEST")
-                            #await member.add_roles(liveRole)
-            #Checking if still live.
-            for member in liveRole.members:
-                activList = []
-                for activity in member.activities:
-                    activList.append(activity.name)
-                if "Twitch" not in activList:
-                    await channel.send(member.name + "is no longer live --- TEST")
-                    #await member.remove_roles(liveRole)
-            await asyncio.sleep(30)
+#     async def checkForStreaming(self):
+#         await self.wait_until_ready()
+#         #get the streamer role from the guild, by id.
+#         guild = self.get_guild(491609268567408641)
+#         streamerRole = guild.get_role(659062011082047499)
+#         liveRole = guild.get_role(660090844124282881)
+#         #Test channel to send notifcation of live, by id. Later this should add the Role "LIVE".
+#         channel = self.get_channel(660083659801493505)
+#         await channel.send("Bot is running, this is a 1 minute interval message to see if it is still online.")
+#         while not self.is_closed():
+#             #all users with the streamer role
+#             for member in streamerRole.members:
+#                 for activity in member.activities:
+#                     if activity.name == "Twitch":
+#                         if liveRole not in member.roles:
+#                             await channel.send(member.name + "is live --- TEST")
+#                             #await member.add_roles(liveRole)
+#             #Checking if still live.
+#             for member in liveRole.members:
+#                 activList = []
+#                 for activity in member.activities:
+#                     activList.append(activity.name)
+#                 if "Twitch" not in activList:
+#                     await channel.send(member.name + "is no longer live --- TEST")
+#                     #await member.remove_roles(liveRole)
+#             await asyncio.sleep(30)
+    
+@loop(seconds=60)
+async def checkForStreaming():
+    await Client.wait_until_ready()
+    #get the streamer role from the guild, by id.
+    guild = Client.get_guild(491609268567408641)
+    streamerRole = guild.get_role(659062011082047499)
+    liveRole = guild.get_role(660090844124282881)
+    #Test channel to send notifcation of live, by id. Later this should add the Role "LIVE".
+    channel = guild.get_channel(660083659801493505)
+    #all users with the streamer role
+    for member in streamerRole.members:
+        for activity in member.activities:
+            if activity.name == "Twitch":
+                if liveRole not in member.roles:
+                    await channel.send(member.name + "is live --- TEST")
+                    await member.add_roles(liveRole)
+    #Checking if still live.
+    for member in liveRole.members:
+        activList = []
+        for activity in member.activities:
+            activList.append(activity.name)
+        if "Twitch" not in activList:
+            await channel.send(member.name + "is no longer live --- TEST")
+            await member.remove_roles(liveRole)
 
 #command clear
 @Client.command(pass_context=True)
@@ -150,16 +176,11 @@ async def ban(ctx):
 #on member join, putting in an image and a text line.
 @Client.event
 async def on_member_join(member):
-    print('working')
     makeWelcomeBanner(member.name)
-    print('made banner')
     guild = member.guild
     if guild.system_channel is not None:
-        print('default channel is ready')
         await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
-        print('send image')
         to_send = 'Welkom {0.mention} bij {1.name}! Doe een !welkom om de rest van de kanalen te kunnen zien!'.format(member,guild)
-        print(to_send)
         return await guild.system_channel.send(to_send)
 
 #welkom
@@ -226,8 +247,9 @@ def makeWelcomeBanner(name):
 
 #run bot
 token = getToken("config.txt", "TOKEN")
-client = MyClient()
-client.run(token)
+#client = MyClient()
+#client.run(token)
+checkForStreaming.start()
 Client.run(token)
 
 """""""""
