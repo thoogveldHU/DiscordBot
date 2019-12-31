@@ -14,7 +14,6 @@ import youtube_dl
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-
 ytdl_format_options = {
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
@@ -35,7 +34,6 @@ ffmpeg_options = {
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -392,6 +390,23 @@ async def on_message_edit(before,after):
         await channel.send(embed=embed)
     except discord.errors.HTTPException:
         print()
+
+@Client.event
+async def on_member_remove(user):
+    guild = Client.get_guild(491609268567408641)
+    #Logging channel.
+    channel = guild.get_channel(661330775618224158)
+    embed = discord.Embed(title='Genie left the server.')
+    embed.add_field(name="User:",value=user,inline=False)
+    return await channel.send(embed=embed)
+
+# @Client.event
+# async def on_member_ban(guild,user):
+#     #Logging channel.
+#     channel = guild.get_channel(661330775618224158)
+#     embed = discord.Embed(title='Genie banned!')
+#     embed.add_field(name="User:",value=user,inline=False)
+#     return await channel.send(embed=embed)
 
 #run bot
 token = getToken("config.txt", "TOKEN")
