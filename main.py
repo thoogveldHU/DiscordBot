@@ -363,7 +363,7 @@ def makeWelcomeBanner(name):
 
 @Client.event
 async def on_message_delete(message):
-    if not message.content.startswith("!clear"):
+    if not message.content.startswith("!"):
         #Get the old message and give it a make over.
         embed = discord.Embed(title="Deleted Message by: {0}".format(message.author))
         embed.add_field(name="Message content",value=message.content,inline=False)
