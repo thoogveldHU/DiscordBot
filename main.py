@@ -386,7 +386,7 @@ async def on_message_delete(message):
 @Client.event
 async def on_message_edit(before,after):
     #Get the old message and give it a make over.
-    if (before != after):
+    if (before.content != after.content):
         try:
             embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
             embed.add_field(name="Old message content",value=before.content, inline=False)
