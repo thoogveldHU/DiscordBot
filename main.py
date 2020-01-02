@@ -184,10 +184,10 @@ async def warn(ctx):
 
     #Getting the user from the message
     listOfWords = ctx.message.content.split(" ")
-    member = listOfWords[1][3:-1]
+    memberID = int(listOfWords[1][3:-1]) #userID
 
-    #getting the member
-    user = await Client.fetch_user(int(member))
+    #getting the user from their ID
+    user = await Client.fetch_user(memberID)
 
     #Gettings Reason from the message
     warnReason = "No reason given."
