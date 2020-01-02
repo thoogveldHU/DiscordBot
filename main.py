@@ -408,6 +408,11 @@ async def on_member_remove(user):
     embed.add_field(name="User:",value=user,inline=False)
     return await channel.send(embed=embed)
 
+@Client.command
+async def invite(ctx):
+    link = await Client.create_invite(destination=ctx.channel,xkcd=True,max_uses=10)
+    return await ctx.channel.send(link)
+
 # @Client.event
 # async def on_member_ban(guild,user):
 #     #Logging channel.
