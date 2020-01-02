@@ -194,7 +194,7 @@ async def warn(ctx):
     try:
         reasonString = ""
         for word in listOfWords[2:]:
-            reasonString += word
+            reasonString += word + " "
             warnReason = reasonString
     except IndexError:
         warnReason = "No reason given."
