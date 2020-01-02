@@ -295,7 +295,11 @@ async def on_member_join(member):
     if guild.system_channel is not None:
         await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
         to_send = 'Welkom {0.mention} bij {1.name}! Doe een !welkom om de rest van de kanalen te kunnen zien!'.format(member,guild)
-        return await guild.system_channel.send(to_send)
+        await guild.system_channel.send(to_send)
+    channel = guild.get_channel(662355726043447296)
+    embed = discord.Embed(title='Genie joined the server.')
+    embed.add_field(name="User:", value=member.name, inline=False)
+    return await channel.send(embed=embed)
 
 #welkom
 @Client.command(pass_context=True)
@@ -380,25 +384,26 @@ async def on_message_delete(message):
 @Client.event
 async def on_message_edit(before,after):
     #Get the old message and give it a make over.
-    try:
-        embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
-        embed.add_field(name="Old message content",value=before.content, inline=False)
-        embed.add_field(name="New Message content",value=after.content, inline=False)
-        embed.add_field(name="Channel",value=before.channel,inline=False)
-        #get the streamer role from the guild, by id.
-        guild = Client.get_guild(491609268567408641)
-        #Logging channel.
-        channel = guild.get_channel(661330775618224158)
-        #Send it to the logging channel.
-        await channel.send(embed=embed)
-    except discord.errors.HTTPException:
-        print()
+    if (before != after):
+        try:
+            embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
+            embed.add_field(name="Old message content",value=before.content, inline=False)
+            embed.add_field(name="New Message content",value=after.content, inline=False)
+            embed.add_field(name="Channel",value=before.channel,inline=False)
+            #get the streamer role from the guild, by id.
+            guild = Client.get_guild(491609268567408641)
+            #Logging channel.
+            channel = guild.get_channel(661330775618224158)
+            #Send it to the logging channel.
+            await channel.send(embed=embed)
+        except discord.errors.HTTPException:
+            print()
 
 @Client.event
 async def on_member_remove(user):
     guild = Client.get_guild(491609268567408641)
     #Logging channel.
-    channel = guild.get_channel(661330775618224158)
+    channel = guild.get_channel(662355726043447296)
     embed = discord.Embed(title='Genie left the server.')
     embed.add_field(name="User:",value=user,inline=False)
     return await channel.send(embed=embed)
