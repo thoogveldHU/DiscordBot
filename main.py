@@ -901,7 +901,7 @@ token = getToken("config.txt", "TOKEN")
 checkForStreaming.start()
 
 Client.add_cog(Music(Client))
-Client.add_cog(Userinfo(Client))
+#Client.add_cog(Userinfo(Client))
 
 Client.run(token)
 
