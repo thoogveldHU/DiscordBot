@@ -817,7 +817,7 @@ async def welcomeMessageTest(ctx):
 
 #make welcome image
 def makeWelcomeBanner(name):
-    astr = '''Welkom bij Kwaad Genie \n''' + name + "!"
+    astr = '''Welkom bij Kwaad Genie \n''' + str(name) + "!"
     para = textwrap.wrap(astr, width=30)
     im = Image.open('banner.png')
     MAX_W, MAX_H = im.size[0], im.size[1]
