@@ -809,7 +809,7 @@ def getToken(fileName,command):
 @Client.command(pass_context=True)
 @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
 async def welcomeMessageTest(ctx):
-    makeWelcomeBanner(ctx)
+    makeWelcomeBanner(str(ctx.author.name))
     guild = ctx.author.guild
     await ctx.channel.send(file=discord.File('welcome_banner_ready.png'))
     to_send = " 'Welkom thuis {0.mention} - CaptainManCave'. Wat leuk dat je er bent, doe een !welkom in de chat om een Genie te worden en alle kanalen te bekijken!".format(ctx.author)
