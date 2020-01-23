@@ -517,27 +517,33 @@ class UserInfo(commands.Cog):
     async def _userinfo(self, ctx: commands.Context):
         try:
             user = ctx.message.mentions[0]
+            member = ctx.guild.get_member(user.id)
+
+            dutch_date_created = str(user.created_at.day) + "-"  + str(user.created_at.month) + "-" + str(
+                user.created_at.year) + "  " + str(user.created_at.hour) + ":" + str(user.created_at.minute)
+
+            dutch_date_joined = str(member.joined_at.day) + "-" + str(member.joined_at.month) + "-" + str(
+                member.joined_at.year) + "  " + str(member.joined_at.hour) + ":" + str(member.joined_at.minute)
+
+            roles = ""
+            for role in member.roles:
+                if str(role) != "@everyone":
+                    roles += str(role) + ", "
+
+            embed = discord.Embed(title='Genie : {.display_name}'.format(user), color=user.colour)
+            embed.set_author(name="KWAADGENIE'S ONE AND ONLY...", url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            embed.set_thumbnail(url=user.avatar_url)
+            embed.add_field(name='name', value='{.name}'.format(user), inline=True)
+            embed.add_field(name='joined at', value=dutch_date_joined, inline=True)
+            embed.add_field(name='created account', value=dutch_date_created, inline=True)
+            embed.add_field(name='roles', value=roles, inline=True)
+            embed.add_field(name='id', value=user.id, inline=True)
+            embed.set_footer(text='we love every single genie < 3')
+            return await ctx.send(embed=embed)
+
         except IndexError:
             return
         
-
-        embed = discord.Embed(title='information for user {0.name}', color=0xff0000)
-        embed.set_author(name='USER INFO FOR {0.name}', url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-        embed.set_thumbnail(url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-        embed.add_field(name='name', value='undefined', inline=True)
-        embed.add_field(name='joined at', value='undefined', inline=True)
-        embed.add_field(name='created account', value='undefined', inline=True)
-        embed.add_field(name='roles', value='undefined', inline=True)
-        embed.add_field(name='avatar link', value='undefined', inline=True)
-        embed.add_field(name='id', value='undefined', inline=True)
-        embed.set_footer(text='we love every single genie < 3')
-        return await ctx.send(embed=embed)
-
-
-    @commands.command(name='test')
-    async def _test(self, ctx: commands.Context):
-        print("test")
-
 
 class Translater(commands.Cog):
     def __init__(self, bot: commands.Bot):
