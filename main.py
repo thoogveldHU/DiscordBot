@@ -565,102 +565,77 @@ class Moderation(commands.Cog):
     @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
     async def _warn(self, ctx: commands.Context):
 
-        # Getting the user from the message
-        listOfWords = ctx.message.content.split(" ")
-        memberID = int(listOfWords[1][3:-1])  # userID
-
-        # getting the user from their ID
-        user = await Client.fetch_user(memberID)
-
-        # Gettings Reason from the message
-        warnReason = "No reason given."
         try:
-            reasonString = ""
-            for word in listOfWords[2:]:
-                reasonString += word + " "
-                warnReason = reasonString
+            member_to_warn = ctx.message.mentions[0]
         except IndexError:
-            warnReason = "No reason given."
-        # opening the warning file
-        wb = openpyxl.load_workbook('warnings.xlsx')
-        ws = wb.active
-        # Checking if user is already there.
-        for row in ws:
-            # Found the ID on A[x]
-            if str(row[0].value) == str(user.id):
-                # For items in user
-                for item in row:
-                    if type(item.value) == type(None):
-                        cell = (str(item)[-3:-1])
-                        ws[cell] = warnReason
-                        wb.save('warnings.xlsx')
-                        return await ctx.send(user.name + " has been warned..")
-                # there is no none, so we just add a cell after the items.
-                cellStr = str(item)[-3:-1]
-                cellOrd = chr(ord(cellStr[0]) + 1)
-                newCellStr = str(cellOrd) + str(cellStr[1:])
-                ws[newCellStr] = warnReason
-                wb.save('warnings.xlsx')
-                return await ctx.send(user.name + " has been warned..")
-        username = user.name + "#" + user.discriminator
-        ws.append([str(user.id), str(username), str(warnReason)])
-        wb.save('warnings.xlsx')
-        return await ctx.send(user.name + " has been warned..")
+            return
+        
+        try:
+            splitLine = ctx.message.content.split(" ")
+            reason = "-"
+            for word in splitLine[2:]:
+                reason += str(word) + " "
+        except IndexError:
+            return
+        
+        try:
+            memberList = pickle.load(open("members.dat", "rb"))
+            isSaved = 0
+            amountOfWarns = 1
+            for member in memberList: #0 id, 1 name, 2.... warns
+                counter = 0
+                if member[0] == member_to_warn.id:
+                    member.append(reason)
+                    amountOfWarns = len(member[2:])
+                    pickle.dump(memberList, open("members.dat","wb"))
+                    isSaved = 1
+                counter += 1
+            if isSaved == 0:
+                memberList.append([member_to_warn.id, member_to_warn.name, reason])
+                pickle.dump(memberList, open("members.dat", "wb"))
+            await ctx.channel.send(member_to_warn.mention + " has been warned. \n Total warns for this genie: " + str(amountOfWarns) + ".")
+
+        except FileNotFoundError:
+            return
 
     @commands.command(name='clearwarn')
     @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
     async def _clearwarn(self, ctx: commands.Context):
-
-        # Getting the user from the message
-        listOfWords = ctx.message.content.split(" ")
-        member = listOfWords[1][3:-1]
-        user = Client.get_user(int(member))
-
-        # opening the warning file
-        wb = openpyxl.load_workbook('warnings.xlsx')
-        ws = wb.active
-
-        # Checking if user is already there.
-        for row in ws:
-
-            # Found the ID on A[x]
-            if str(row[0].value) == str(user.id):
-
-                # For items in user
-                for item in row[2:]:
-                    # Skip the ID and Name of the member, and just get the warnings.
-                    cell = (str(item)[-3:-1])
-                    ws[cell] = None
-                wb.save('warnings.xlsx')
-                return await ctx.send(user.name + " warns have been cleared.")
+        member_to_warn = ctx.message.mentions[0]
+        memberList = pickle.load(open("members.dat","rb"))
+        counter = 0
+        for member in memberList:
+            if member[0] != member_to_warn.id:
+                counter += 1
+            else:
+                memberList.pop(counter)
+                return pickle.dump(memberList, open("members.dat", "wb"))
 
     @commands.command(name='warnlog')
     @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
     async def _warnlog(self, ctx: commands.Context):
-        # Getting the user from the message
-        listOfWords = ctx.message.content.split(" ")
-        member = listOfWords[1][3:-1]
-        user = Client.get_user(int(member))
-        embed = discord.Embed(title="Warnlog for user {0.name}".format(user))
-        # opening the warning file
-        wb = openpyxl.load_workbook('warnings.xlsx')
-        ws = wb.active
-        # Checking if user is already there.
-        for row in ws:
-            # Found the ID on A[x]
-            if str(row[0].value) == str(user.id):
-                # For items in user
-                warns = []
-                for item in row[2:]:
-                    if item.value != None:
-                        warns.append(item.value)
-                        size = len(warns)
-                        embed.add_field(name="Warning {0}".format(
-                            size), value=item.value, inline=False)
-                    else:
-                        embed.add_field(name="No warnings found for {0.name}".format(
-                            user), value="GOOD GENIE!")
-        await ctx.channel.send(embed=embed)
+        try:
+            embed=discord.Embed(title="Warns for user", url="https://www.youtube.com/watch?v=IbkziFdxHuA", color=0xff0000)
+            embed.set_footer(text="Watch out..")
+            member_to_warn = ctx.message.mentions[0]
+            memberList = pickle.load(open("members.dat","rb"))
+            for member in memberList:
+                isWarned = 0
+                if member[0] == member_to_warn.id:
+                    counter = 1
+                    print(member[2:])
+                    for warn in member[2:]:
+                        embed.add_field(name="Warn " + str(counter), value=warn, inline=False)
+                        counter += 1
+                        isWarned = 1
+            if isWarned == 1:
+                return await ctx.channel.send(embed=embed)
+            else:
+                embed = discord.Embed(title="Nothing found!", color=0x00ff00)
+                return await ctx.channel.send(embed=embed)
+        except:
+            embed = discord.Embed(title="Nothing found!", color=0x00ff00)
+            return await ctx.channel.send(embed=embed)
 
     @commands.command(name='ban')
     @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
