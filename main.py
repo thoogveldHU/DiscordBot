@@ -15,98 +15,9 @@ import math
 import random
 from async_timeout import timeout
 
-
-
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-class Userinfo:
-
-    def __init__(self, bot):
-        self.bot = bot
-
-    @commands.group(invoke_without_command=True, aliases=['user', 'uinfo', 'info', 'ui'])
-    async def userinfo(self, ctx, *, name=""):
-        """Get user info. Ex: [p]info @user"""
-        if ctx.invoked_subcommand is None:
-            pre = cmd_prefix_len()
-            if name:
-                try:
-                    user = ctx.message.mentions[0]
-                except IndexError:
-                    user = ctx.guild.get_member_named(name)
-                if not user:
-                    user = ctx.guild.get_member(int(name))
-                if not user:
-                    user = self.bot.get_user(int(name))
-                if not user:
-                    await ctx.send(self.bot.bot_prefix + 'Could not find user.')
-                    return
-            else:
-                user = ctx.message.author
-
-            if user.avatar_url_as(static_format='png')[54:].startswith('a_'):
-                avi = user.avatar_url.rsplit("?", 1)[0]
-            else:
-                avi = user.avatar_url_as(static_format='png')
-            if isinstance(user, discord.Member):
-                role = user.top_role.name
-                if role == "@everyone":
-                    role = "N/A"
-                voice_state = None if not user.voice else user.voice.channel
-            if embed_perms(ctx.message):
-                em = discord.Embed(timestamp=ctx.message.created_at, colour=0x708DD0)
-                em.add_field(name='User ID', value=user.id, inline=True)
-                if isinstance(user, discord.Member):
-                    em.add_field(name='Nick', value=user.nick, inline=True)
-                    em.add_field(name='Status', value=user.status, inline=True)
-                    em.add_field(name='In Voice', value=voice_state, inline=True)
-                    em.add_field(name='Game', value=user.activity, inline=True)
-                    em.add_field(name='Highest Role', value=role, inline=True)
-                em.add_field(name='Account Created', value=user.created_at.__format__('%A, %d. %B %Y @ %H:%M:%S'))
-                if isinstance(user, discord.Member):
-                    em.add_field(name='Join Date', value=user.joined_at.__format__('%A, %d. %B %Y @ %H:%M:%S'))
-                em.set_thumbnail(url=avi)
-                em.set_author(name=user, icon_url='https://i.imgur.com/RHagTDg.png')
-                await ctx.send(embed=em)
-            else:
-                if isinstance(user, discord.Member):
-                    msg = '**User Info:** ```User ID: %s\nNick: %s\nStatus: %s\nIn Voice: %s\nGame: %s\nHighest Role: %s\nAccount Created: %s\nJoin Date: %s\nAvatar url:%s```' % (user.id, user.nick, user.status, voice_state, user.activity, role, user.created_at.__format__('%A, %d. %B %Y @ %H:%M:%S'), user.joined_at.__format__('%A, %d. %B %Y @ %H:%M:%S'), avi)
-                else:
-                    msg = '**User Info:** ```User ID: %s\nAccount Created: %s\nAvatar url:%s```' % (user.id, user.created_at.__format__('%A, %d. %B %Y @ %H:%M:%S'), avi)
-                await ctx.send(self.bot.bot_prefix + msg)
-
-            await ctx.message.delete()
-
-    @userinfo.command()
-    async def avi(self, ctx, txt: str = None):
-        """View bigger version of user's avatar. Ex: [p]info avi @user"""
-        if txt:
-            try:
-                user = ctx.message.mentions[0]
-            except IndexError:
-                user = ctx.guild.get_member_named(txt)
-            if not user:
-                user = ctx.guild.get_member(int(txt))
-            if not user:
-                user = self.bot.get_user(int(txt))
-            if not user:
-                await ctx.send(self.bot.bot_prefix + 'Could not find user.')
-                return
-        else:
-            user = ctx.message.author
-
-        if user.avatar_url_as(static_format='png')[54:].startswith('a_'):
-            avi = user.avatar_url.rsplit("?", 1)[0]
-        else:
-            avi = user.avatar_url_as(static_format='png')
-        if embed_perms(ctx.message):
-            em = discord.Embed(colour=0x708DD0)
-            em.set_image(url=avi)
-            await ctx.send(embed=em)
-        else:
-            await ctx.send(self.bot.bot_prefix + avi)
-        await ctx.message.delete()
 
 class VoiceError(Exception):
     pass
@@ -229,6 +140,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         return ', '.join(duration)
 
+
 class Song:
     __slots__ = ('source', 'requester')
 
@@ -248,6 +160,7 @@ class Song:
                  .set_thumbnail(url=self.source.thumbnail))
 
         return embed
+
 
 class SongQueue(asyncio.Queue):
     def __getitem__(self, item):
@@ -270,6 +183,7 @@ class SongQueue(asyncio.Queue):
 
     def remove(self, index: int):
         del self._queue[index]
+
 
 class VoiceState:
     def __init__(self, bot: commands.Bot, ctx: commands.Context):
@@ -350,6 +264,7 @@ class VoiceState:
         if self.voice:
             await self.voice.disconnect()
             self.voice = None
+
 
 class Music(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -593,27 +508,320 @@ class Music(commands.Cog):
                 raise commands.CommandError(
                     'Bot is already in a voice channel.')
 
-#prefix
+
+class UserInfo(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(name='userinfo')
+    async def _userinfo(self, ctx: commands.Context):
+        try:
+            user = ctx.message.mentions[0]
+        except IndexError:
+            return
+        
+
+        embed = discord.Embed(title='information for user {0.name}', color=0xff0000)
+        embed.set_author(name='USER INFO FOR {0.name}', url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        embed.set_thumbnail(url='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        embed.add_field(name='name', value='undefined', inline=True)
+        embed.add_field(name='joined at', value='undefined', inline=True)
+        embed.add_field(name='created account', value='undefined', inline=True)
+        embed.add_field(name='roles', value='undefined', inline=True)
+        embed.add_field(name='avatar link', value='undefined', inline=True)
+        embed.add_field(name='id', value='undefined', inline=True)
+        embed.set_footer(text='we love every single genie < 3')
+        return await ctx.send(embed=embed)
+
+
+    @commands.command(name='test')
+    async def _test(self, ctx: commands.Context):
+        print("test")
+
+
+class Translater(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+
+class Moderation(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(name='clear')
+    @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
+    async def _clear(self, ctx: commands.Context, number):
+        number = int(number)
+        counter = 0
+        async for message in ctx.channel.history(limit=number):
+            if counter < number:
+                await message.delete()
+                counter += 1
+
+    @commands.command(name='warn')
+    @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
+    async def _warn(self, ctx: commands.Context):
+
+        # Getting the user from the message
+        listOfWords = ctx.message.content.split(" ")
+        memberID = int(listOfWords[1][3:-1])  # userID
+
+        # getting the user from their ID
+        user = await Client.fetch_user(memberID)
+
+        # Gettings Reason from the message
+        warnReason = "No reason given."
+        try:
+            reasonString = ""
+            for word in listOfWords[2:]:
+                reasonString += word + " "
+                warnReason = reasonString
+        except IndexError:
+            warnReason = "No reason given."
+        # opening the warning file
+        wb = openpyxl.load_workbook('warnings.xlsx')
+        ws = wb.active
+        # Checking if user is already there.
+        for row in ws:
+            # Found the ID on A[x]
+            if str(row[0].value) == str(user.id):
+                # For items in user
+                for item in row:
+                    if type(item.value) == type(None):
+                        cell = (str(item)[-3:-1])
+                        ws[cell] = warnReason
+                        wb.save('warnings.xlsx')
+                        return await ctx.send(user.name + " has been warned..")
+                # there is no none, so we just add a cell after the items.
+                cellStr = str(item)[-3:-1]
+                cellOrd = chr(ord(cellStr[0]) + 1)
+                newCellStr = str(cellOrd) + str(cellStr[1:])
+                ws[newCellStr] = warnReason
+                wb.save('warnings.xlsx')
+                return await ctx.send(user.name + " has been warned..")
+        username = user.name + "#" + user.discriminator
+        ws.append([str(user.id), str(username), str(warnReason)])
+        wb.save('warnings.xlsx')
+        return await ctx.send(user.name + " has been warned..")
+
+    @commands.command(name='clearwarn')
+    @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
+    async def _clearwarn(self, ctx: commands.Context):
+
+        # Getting the user from the message
+        listOfWords = ctx.message.content.split(" ")
+        member = listOfWords[1][3:-1]
+        user = Client.get_user(int(member))
+
+        # opening the warning file
+        wb = openpyxl.load_workbook('warnings.xlsx')
+        ws = wb.active
+
+        # Checking if user is already there.
+        for row in ws:
+
+            # Found the ID on A[x]
+            if str(row[0].value) == str(user.id):
+
+                # For items in user
+                for item in row[2:]:
+                    # Skip the ID and Name of the member, and just get the warnings.
+                    cell = (str(item)[-3:-1])
+                    ws[cell] = None
+                wb.save('warnings.xlsx')
+                return await ctx.send(user.name + " warns have been cleared.")
+
+    @commands.command(name='warnlog')
+    @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
+    async def _warnlog(self, ctx: commands.Context):
+        # Getting the user from the message
+        listOfWords = ctx.message.content.split(" ")
+        member = listOfWords[1][3:-1]
+        user = Client.get_user(int(member))
+        embed = discord.Embed(title="Warnlog for user {0.name}".format(user))
+        # opening the warning file
+        wb = openpyxl.load_workbook('warnings.xlsx')
+        ws = wb.active
+        # Checking if user is already there.
+        for row in ws:
+            # Found the ID on A[x]
+            if str(row[0].value) == str(user.id):
+                # For items in user
+                warns = []
+                for item in row[2:]:
+                    if item.value != None:
+                        warns.append(item.value)
+                        size = len(warns)
+                        embed.add_field(name="Warning {0}".format(
+                            size), value=item.value, inline=False)
+                    else:
+                        embed.add_field(name="No warnings found for {0.name}".format(
+                            user), value="GOOD GENIE!")
+        await ctx.channel.send(embed=embed)
+
+    @commands.command(name='ban')
+    @has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
+    async def _ban(self, ctx: commands.Context):
+        listOfWords = ctx.message.content.split(" ")
+        member = listOfWords[1][3:-1]
+        user = Client.get_user(int(member))
+        await ctx.guild.ban(user)
+        await ctx.channel.send(file=discord.File('ban.jpg'))
+
+    @commands.command(name='invite')
+    async def invite(self, ctx: commands.Context):
+        link = await ctx.channel.create_invite(max_uses=1, reason=ctx.author.name + ' made this invite.')
+        return await ctx.send(link)
+
+class RoleCommands(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(name='iam')
+    @has_any_role(627925171818332180, 512365666611757076, 652607412611710984, 627893819979071509)
+    async def _iam(self, ctx: commands.Context):
+        listOfWords = str(ctx.message.content.lower()).split(" ")
+        allowedList = ["streamer","tp20"]
+        if str(listOfWords[1]) in allowedList:
+            member = ctx.message.author
+            server = ctx.message.author.guild
+            for role in server.roles:
+                if role.name.lower() == listOfWords[1]:
+                    await member.add_roles(role)
+                    emoji = '\U0001f44d'
+                    return await ctx.message.add_reaction(emoji)
+        emoji = '\U0001F44E'
+        return await ctx.message.add_reaction(emoji)
+
+    @commands.command(name='welkom')
+    async def _welkom(self, ctx: commands.Context):
+        member = ctx.message.author
+        genie = get(member.guild.roles, id=627893819979071509)
+        await member.add_roles(genie)
+        emoji = '\U0001f44d'
+        return await ctx.message.add_reaction(emoji)
+
+    # welcome
+    @commands.command(name='welcome')
+    async def _welcome(self, ctx: commands.Context):
+        member = ctx.message.author
+        genie = get(member.guild.roles, id=627893819979071509)
+        await member.add_roles(genie)
+        emoji = '\U0001f44d'
+        return await ctx.message.add_reaction(emoji)
+
+class Listeners(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    def makeWelcomeBanner(self, name):
+        astr = '''Welkom bij Kwaad Genie \n''' + str(name) + "!"
+        para = textwrap.wrap(astr, width=30)
+        im = Image.open('banner.png')
+        MAX_W, MAX_H = im.size[0], im.size[1]
+
+        draw = ImageDraw.Draw(im)
+        font = ImageFont.truetype('segoe-ui-bold.ttf', 28)
+
+        # Front text
+        current_h, pad = 75, 10
+        for line in para:
+            w, h = draw.textsize(line, font=font)
+            if not line == para[-1]:
+                draw.text(((MAX_W - w) / 4, current_h), line,
+                        font=font, fill=(255, 255, 255, 255))
+            else:
+                draw.text(((MAX_W - w) / 3, current_h), line,
+                        font=font, fill=(200, 200, 200, 255))
+            current_h += h + pad
+        im.save('welcome_banner_ready.png')
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        makeWelcomeBanner(member.name)
+        guild = member.guild
+        if guild.system_channel is not None:
+            await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
+            to_send = 'Welkom {0.mention} bij {1.name}! Doe een !welkom om de rest van de kanalen te kunnen zien!'.format(
+                member, guild)
+            await guild.system_channel.send(to_send)
+        channel = guild.get_channel(662355726043447296)
+        embed = discord.Embed(title='Genie joined the server.')
+        embed.add_field(name="User:", value=member.name, inline=False)
+        return await channel.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        try:
+            if not message.content.startswith("!"):
+                # Get the old message and give it a make over.
+                embed = discord.Embed(
+                    title="Deleted Message by: {0}".format(message.author))
+                embed.add_field(name="Message content",
+                                value=message.content, inline=False)
+                embed.add_field(name="Channel:",
+                                value=message.channel, inline=False)
+                # get the streamer role from the guild, by id.
+                guild = Client.get_guild(491609268567408641)
+                # Logging channel.
+                channel = guild.get_channel(661330775618224158)
+                # Send it to the logging channel.
+                await channel.send(embed=embed)
+        except discord.errors.HTTPException:
+            print()
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        # Get the old message and give it a make over.
+        if (before.content != after.content):
+            try:
+                embed = discord.Embed(
+                    title="Edited Message by: {0}".format(before.author))
+                embed.add_field(name="Old message content",
+                                value=before.content, inline=False)
+                embed.add_field(name="New Message content",
+                                value=after.content, inline=False)
+                embed.add_field(
+                    name="Channel", value=before.channel, inline=False)
+                # get the streamer role from the guild, by id.
+                guild = Client.get_guild(491609268567408641)
+                # Logging channel.
+                channel = guild.get_channel(661330775618224158)
+                # Send it to the logging channel.
+                await channel.send(embed=embed)
+            except discord.errors.HTTPException:
+                print()
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, user):
+        guild = Client.get_guild(491609268567408641)
+        # Logging channel.
+        channel = guild.get_channel(662355726043447296)
+        embed = discord.Embed(title='Genie left the server.')
+        embed.add_field(name="User:", value=user, inline=False)
+        return await channel.send(embed=embed)
+
+# prefix
 Client = Bot('!')
 
-#Check for streamer & live roles.
+# Check for streamer & live roles.
 @loop(seconds=60)
 async def checkForStreaming():
     await Client.wait_until_ready()
-    #get the streamer role from the guild, by id.
+    # get the streamer role from the guild, by id.
     guild = Client.get_guild(491609268567408641)
     streamerRole = guild.get_role(659062011082047499)
     liveRole = guild.get_role(660090844124282881)
-    #Test channel to send notifcation of live, by id. Later this should add the Role "LIVE".
+    # Test channel to send notifcation of live, by id. Later this should add the Role "LIVE".
     channel = guild.get_channel(660083659801493505)
-    #all users with the streamer role
+    # all users with the streamer role
     for member in streamerRole.members:
         for activity in member.activities:
             if activity.name == "Twitch":
                 if liveRole not in member.roles:
                     await channel.send(member.name + "is live --- TEST")
                     await member.add_roles(liveRole)
-    #Checking if still live.
+    # Checking if still live.
     for member in liveRole.members:
         activList = []
         for activity in member.activities:
@@ -622,286 +830,26 @@ async def checkForStreaming():
             await channel.send(member.name + "is no longer live --- TEST")
             await member.remove_roles(liveRole)
 
-#command clear
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
-async def clear(ctx, number):
-    number = int(number)
-    counter = 0
-    async for message in ctx.channel.history(limit=number):
-        if counter < number:
-            await message.delete()
-            counter += 1
-
-#command iam
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984, 627893819979071509)
-async def iam(ctx):
-    listOfWords = str(ctx.message.content.lower()).split(" ")
-    allowedList = ["streamer"]
-    if str(listOfWords[1]) in allowedList:
-        member = ctx.message.author
-        server = ctx.message.author.guild
-        for role in server.roles:
-            if role.name.lower() == listOfWords[1]:
-                await member.add_roles(role)
-                emoji = '\U0001f44d'
-                return await ctx.message.add_reaction(emoji)
-    emoji = '\U0001F44E'
-    return await ctx.message.add_reaction(emoji)
-
-#command warn      
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
-async def warn(ctx):
-
-    #Getting the user from the message
-    listOfWords = ctx.message.content.split(" ")
-    memberID = int(listOfWords[1][3:-1]) #userID
-
-    #getting the user from their ID
-    user = await Client.fetch_user(memberID)
-
-    #Gettings Reason from the message
-    warnReason = "No reason given."
-    try:
-        reasonString = ""
-        for word in listOfWords[2:]:
-            reasonString += word + " "
-            warnReason = reasonString
-    except IndexError:
-        warnReason = "No reason given."
-    #opening the warning file
-    wb = openpyxl.load_workbook('warnings.xlsx')
-    ws = wb.active
-    #Checking if user is already there.
-    for row in ws:
-        #Found the ID on A[x]
-        if str(row[0].value) == str(user.id):
-            #For items in user
-            for item in row:
-                if type(item.value) == type(None):
-                    cell = (str(item)[-3:-1])
-                    ws[cell] = warnReason
-                    wb.save('warnings.xlsx')
-                    return await ctx.send(user.name + " has been warned..")
-            #there is no none, so we just add a cell after the items.
-            cellStr = str(item)[-3:-1]
-            cellOrd = chr(ord(cellStr[0]) + 1)
-            newCellStr = str(cellOrd) + str(cellStr[1:])
-            ws[newCellStr] = warnReason
-            wb.save('warnings.xlsx')
-            return await ctx.send(user.name + " has been warned..")
-    username = user.name + "#" + user.discriminator
-    ws.append([str(user.id),str(username),str(warnReason)])
-    wb.save('warnings.xlsx')
-    return await ctx.send(user.name + " has been warned..")
-
-#command warn
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
-async def clearwarn(ctx):
-
-    #Getting the user from the message
-    listOfWords = ctx.message.content.split(" ")
-    member = listOfWords[1][3:-1]
-    user = Client.get_user(int(member))
-
-    #opening the warning file
-    wb = openpyxl.load_workbook('warnings.xlsx')
-    ws = wb.active
-
-    #Checking if user is already there.
-    for row in ws:
-
-        #Found the ID on A[x]
-        if str(row[0].value) == str(user.id):
-            
-            #For items in user
-            for item in row[2:]:
-                #Skip the ID and Name of the member, and just get the warnings.
-                cell = (str(item)[-3:-1])
-                ws[cell] = None
-            wb.save('warnings.xlsx')
-            return await ctx.send(user.name + " warns have been cleared.")
-
-#command warnlog
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
-async def warnlog(ctx):
-    #Getting the user from the message
-    listOfWords = ctx.message.content.split(" ")
-    member = listOfWords[1][3:-1]
-    user = Client.get_user(int(member))
-    embed = discord.Embed(title="Warnlog for user {0.name}".format(user))
-    #opening the warning file
-    wb = openpyxl.load_workbook('warnings.xlsx')
-    ws = wb.active
-    #Checking if user is already there.
-    for row in ws:
-        #Found the ID on A[x]
-        if str(row[0].value) == str(user.id):
-            #For items in user
-            warns = []
-            for item in row[2:]:
-                if item.value != None:
-                    warns.append(item.value)
-                    size = len(warns)
-                    embed.add_field(name="Warning {0}".format(size),value=item.value,inline=False)
-                else:
-                    embed.add_field(name="No warnings found for {0.name}".format(user),value="GOOD GENIE!")
-    await ctx.channel.send(embed=embed)
-
-#command ban
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
-async def ban(ctx):
-    listOfWords = ctx.message.content.split(" ")
-    member = listOfWords[1][3:-1]
-    user = Client.get_user(int(member))
-    await ctx.guild.ban(user)
-    await ctx.channel.send(file=discord.File('ban.jpg'))
-
-#on member join, putting in an image and a text line.
-@Client.event
-async def on_member_join(member):
-    makeWelcomeBanner(member.name)
-    guild = member.guild
-    if guild.system_channel is not None:
-        await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
-        to_send = 'Welkom {0.mention} bij {1.name}! Doe een !welkom om de rest van de kanalen te kunnen zien!'.format(member,guild)
-        await guild.system_channel.send(to_send)
-    channel = guild.get_channel(662355726043447296)
-    embed = discord.Embed(title='Genie joined the server.')
-    embed.add_field(name="User:", value=member.name, inline=False)
-    return await channel.send(embed=embed)
-
-#welkom
-@Client.command(pass_context=True)
-async def welkom(ctx):
-    member = ctx.message.author
-    genie = get(member.guild.roles, id=627893819979071509)
-    await member.add_roles(genie)
-    emoji = '\U0001f44d'
-    return await ctx.message.add_reaction(emoji) 
-
-#welcome
-@Client.command(pass_context=True)
-async def welcome(ctx):
-    member = ctx.message.author
-    genie = get(member.guild.roles, id=627893819979071509)
-    await member.add_roles(genie)
-    emoji = '\U0001f44d'
-    return await ctx.message.add_reaction(emoji)
-
 #read token from file
-def getToken(fileName,command):
-    configFile = open(fileName,"r")
+def getToken(fileName, command):
+    configFile = open(fileName, "r")
     lineList = configFile.readlines()
     for line in lineList:
         if not line.startswith('#'):
             split = line.split("=")
             if split[0] == command:
                 return split[1]
-    return "Command: " + command + " not found." 
-
-#test only.
-@Client.command(pass_context=True)
-@has_any_role(627925171818332180, 512365666611757076, 652607412611710984)
-async def welcomeMessageTest(ctx):
-    makeWelcomeBanner(str(ctx.author.name))
-    guild = ctx.author.guild
-    await ctx.channel.send(file=discord.File('welcome_banner_ready.png'))
-    to_send = " 'Welkom thuis {0.mention} - CaptainManCave'. Wat leuk dat je er bent, doe een !welkom in de chat om een Genie te worden en alle kanalen te bekijken!".format(ctx.author)
-    return await ctx.channel.send(to_send)
-
-#make welcome image
-def makeWelcomeBanner(name):
-    astr = '''Welkom bij Kwaad Genie \n''' + str(name) + "!"
-    para = textwrap.wrap(astr, width=30)
-    im = Image.open('banner.png')
-    MAX_W, MAX_H = im.size[0], im.size[1]
-
-    draw = ImageDraw.Draw(im)
-    font = ImageFont.truetype('segoe-ui-bold.ttf', 28)
-
-    #Front text
-    current_h, pad = 75, 10
-    for line in para:
-        w, h = draw.textsize(line, font=font)
-        if not line == para[-1]:
-            draw.text(((MAX_W - w) / 4, current_h), line,
-                      font=font, fill=(255, 255, 255, 255))
-        else:
-            draw.text(((MAX_W - w) / 3, current_h), line,
-                      font=font, fill=(200, 200, 200, 255))
-        current_h += h + pad
-
-    im.save('welcome_banner_ready.png')
-
-@Client.event
-async def on_message_delete(message):
-    try:
-        if not message.content.startswith("!"):
-            #Get the old message and give it a make over.
-            embed = discord.Embed(title="Deleted Message by: {0}".format(message.author))
-            embed.add_field(name="Message content",value=message.content,inline=False)
-            embed.add_field(name="Channel:",value=message.channel,inline=False)
-            #get the streamer role from the guild, by id.
-            guild = Client.get_guild(491609268567408641)
-            #Logging channel.
-            channel = guild.get_channel(661330775618224158)
-            #Send it to the logging channel.
-            await channel.send(embed=embed)
-    except discord.errors.HTTPException:
-        print()
-
-@Client.event
-async def on_message_edit(before,after):
-    #Get the old message and give it a make over.
-    if (before.content != after.content):
-        try:
-            embed = discord.Embed(title="Edited Message by: {0}".format(before.author))
-            embed.add_field(name="Old message content",value=before.content, inline=False)
-            embed.add_field(name="New Message content",value=after.content, inline=False)
-            embed.add_field(name="Channel",value=before.channel,inline=False)
-            #get the streamer role from the guild, by id.
-            guild = Client.get_guild(491609268567408641)
-            #Logging channel.
-            channel = guild.get_channel(661330775618224158)
-            #Send it to the logging channel.
-            await channel.send(embed=embed)
-        except discord.errors.HTTPException:
-            print()
-
-@Client.event
-async def on_member_remove(user):
-    guild = Client.get_guild(491609268567408641)
-    #Logging channel.
-    channel = guild.get_channel(662355726043447296)
-    embed = discord.Embed(title='Genie left the server.')
-    embed.add_field(name="User:",value=user,inline=False)
-    return await channel.send(embed=embed)
-
-@Client.command(pass_context=True)
-async def invite(ctx):
-    link = await ctx.channel.create_invite(max_uses = 1, reason = ctx.author.name + ' made this invite.')
-    return await ctx.send(link)
-
-# @Client.event
-# async def on_member_ban(guild,user):
-#     #Logging channel.
-#     channel = guild.get_channel(661330775618224158)
-#     embed = discord.Embed(title='Genie banned!')
-#     embed.add_field(name="User:",value=user,inline=False)
-#     return await channel.send(embed=embed)
-
-#run bot
+    return "Command: " + command + " not found."
+# run bot
 token = getToken("config.txt", "TOKEN")
 checkForStreaming.start()
 
 Client.add_cog(Music(Client))
-#Client.add_cog(Userinfo(Client))
+Client.add_cog(UserInfo(Client))
+Client.add_cog(Translater(Client))
+Client.add_cog(Moderation(Client))
+Client.add_cog(RoleCommands(Client))
+Client.add_cog(Listeners(Client))
 
 Client.run(token)
 
@@ -911,5 +859,4 @@ TO-DO:
     2.most played / is playing
     3.ttl next event
     4.meme return /r/memes or /r/dankmemes
-    5.music queue
 """""""""
