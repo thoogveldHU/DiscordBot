@@ -14,6 +14,7 @@ import itertools
 import math
 import random
 from async_timeout import timeout
+import pickle
 
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -830,6 +831,10 @@ class Streamer(commands.Cog):
             if "Twitch" not in activList:
                 await member.remove_roles(liveRole)
 
+class Event(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
 # prefix
 Client = Bot('!')
 
@@ -855,6 +860,7 @@ Client.add_cog(Translater(Client))
 Client.add_cog(Moderation(Client))
 Client.add_cog(RoleCommands(Client))
 Client.add_cog(Listeners(Client))
+Client.add_cog(Event(Client))
 
 Client.run(token)
 
