@@ -15,6 +15,7 @@ import math
 import random
 from async_timeout import timeout
 import pickle
+from googletrans import Translator
 
 # Suppress noise about console usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -547,6 +548,15 @@ class Translater(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    @commands.command(name='translate')
+    async def _translate(self, ctx: commands.Context, or_lang, des_lang, word):
+        translator = Translator()
+        translated = translator.translate(word,dest=des_lang,src=or_lang)
+        embed = discord.Embed(title="Translator",description=or_lang + " -> " + des_lang)
+        embed.add_field(name="Sentence", value=word + " -> " + translated.text, inline=True)
+        return await ctx.channel.send(embed=embed)
+
+
 class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -623,7 +633,6 @@ class Moderation(commands.Cog):
                 isWarned = 0
                 if member[0] == member_to_warn.id:
                     counter = 1
-                    print(member[2:])
                     for warn in member[2:]:
                         embed.add_field(name="Warn " + str(counter), value=warn, inline=False)
                         counter += 1
