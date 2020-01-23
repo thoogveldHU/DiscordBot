@@ -265,7 +265,6 @@ class VoiceState:
             await self.voice.disconnect()
             self.voice = None
 
-
 class Music(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -508,7 +507,6 @@ class Music(commands.Cog):
                 raise commands.CommandError(
                     'Bot is already in a voice channel.')
 
-
 class UserInfo(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -544,11 +542,9 @@ class UserInfo(commands.Cog):
         except IndexError:
             return
         
-
 class Translater(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
 class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -807,34 +803,35 @@ class Listeners(commands.Cog):
         embed.add_field(name="User:", value=user, inline=False)
         return await channel.send(embed=embed)
 
+class Streamer(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.checkForStreaming.start()
+
+    # Check for streamer & live roles.
+    @loop(seconds=60)
+    async def checkForStreaming():
+        await Client.wait_until_ready()
+        # get the streamer role from the guild, by id.
+        guild = Client.get_guild(491609268567408641)
+        streamerRole = guild.get_role(659062011082047499)
+        liveRole = guild.get_role(660090844124282881)
+        # all users with the streamer role
+        for member in streamerRole.members:
+            for activity in member.activities:
+                if activity.name == "Twitch":
+                    if liveRole not in member.roles:
+                        await member.add_roles(liveRole)
+        # Checking if still live.
+        for member in liveRole.members:
+            activList = []
+            for activity in member.activities:
+                activList.append(activity.name)
+            if "Twitch" not in activList:
+                await member.remove_roles(liveRole)
+
 # prefix
 Client = Bot('!')
-
-# Check for streamer & live roles.
-@loop(seconds=60)
-async def checkForStreaming():
-    await Client.wait_until_ready()
-    # get the streamer role from the guild, by id.
-    guild = Client.get_guild(491609268567408641)
-    streamerRole = guild.get_role(659062011082047499)
-    liveRole = guild.get_role(660090844124282881)
-    # Test channel to send notifcation of live, by id. Later this should add the Role "LIVE".
-    channel = guild.get_channel(660083659801493505)
-    # all users with the streamer role
-    for member in streamerRole.members:
-        for activity in member.activities:
-            if activity.name == "Twitch":
-                if liveRole not in member.roles:
-                    await channel.send(member.name + "is live --- TEST")
-                    await member.add_roles(liveRole)
-    # Checking if still live.
-    for member in liveRole.members:
-        activList = []
-        for activity in member.activities:
-            activList.append(activity.name)
-        if "Twitch" not in activList:
-            await channel.send(member.name + "is no longer live --- TEST")
-            await member.remove_roles(liveRole)
 
 #read token from file
 def getToken(fileName, command):
@@ -846,10 +843,12 @@ def getToken(fileName, command):
             if split[0] == command:
                 return split[1]
     return "Command: " + command + " not found."
+
 # run bot
 token = getToken("config.txt", "TOKEN")
-checkForStreaming.start()
 
+# checkForStreaming.start()
+Client.add_cog(Streamer(Client))
 Client.add_cog(Music(Client))
 Client.add_cog(UserInfo(Client))
 Client.add_cog(Translater(Client))
