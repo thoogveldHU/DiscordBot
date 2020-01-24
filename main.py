@@ -725,7 +725,7 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        makeWelcomeBanner(member.name)
+        self.makeWelcomeBanner(member.name)
         guild = member.guild
         if guild.system_channel is not None:
             await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
