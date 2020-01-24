@@ -556,7 +556,6 @@ class Translater(commands.Cog):
         embed.add_field(name="Sentence", value=word + " -> " + translated.text, inline=True)
         return await ctx.channel.send(embed=embed)
 
-
 class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -795,7 +794,7 @@ class Streamer(commands.Cog):
 
     # Check for streamer & live roles.
     @loop(seconds=60)
-    async def checkForStreaming():
+    async def checkForStreaming(self):
         await Client.wait_until_ready()
         # get the streamer role from the guild, by id.
         guild = Client.get_guild(491609268567408641)
