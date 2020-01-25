@@ -728,7 +728,7 @@ class Listeners(commands.Cog):
         guild = member.guild
         if guild.system_channel is not None:
             await guild.system_channel.send(file=discord.File('welcome_banner_ready.png'))
-            to_send = 'Welkom {0.mention} bij {1.name}! Doe een !welkom om de rest van de kanalen te kunnen zien!'.format(
+            to_send = 'Welkom {0.mention} bij {1.name}! Klik op de checkmark in rules als je deze accepteert om alle kanalen te kunnen zien & joinen!'.format(
                 member, guild)
             await guild.system_channel.send(to_send)
         channel = guild.get_channel(662355726043447296)
@@ -787,6 +787,19 @@ class Listeners(commands.Cog):
         embed.add_field(name="User:", value=user, inline=False)
         return await channel.send(embed=embed)
 
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self,payload):
+        message_id = payload.message_id
+        welcome_message_id = 631221969198776382
+        check_emoji = "\u2705" #white_heave_checkmark ? 
+        emoji = payload.emoji
+        member = payload.member
+        if message_id == welcome_message_id:
+            if check_emoji == emoji.name:
+                genie_role = get(member.guild.roles, id=627893819979071509)
+                return await member.add_roles(genie_role)
+            
+        guild_id = payload.guild_id
 class Streamer(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -846,11 +859,3 @@ Client.add_cog(Listeners(Client))
 Client.add_cog(Event(Client))
 
 Client.run(token)
-
-"""""""""
-TO-DO:
-    1.create events
-    2.most played / is playing
-    3.ttl next event
-    4.meme return /r/memes or /r/dankmemes
-"""""""""
