@@ -1,2 +1,0 @@
-#Discord Bot Token
-TOKEN=NjYwMDgyNTE2MzY3MjQ1MzEz.XinYqw.cmpwjdjLg2FZKWeHoAB4Q81PQfo
